@@ -1,0 +1,43 @@
+version: "3.2"
+services:
+
+  nginx:
+    image: nginx:1.21.6
+    ports:
+      - "8080:80"
+      - "443:443"
+    volumes:
+      - ./teampass/app:/app
+      - ./nginx/site.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/ssl/:/etc/nginx/certs
+    links:
+      - teampass
+    networks:
+      - frontend
+
+  teampass:
+    image: php:7-fpm
+    volumes:
+      - ./teampass/app:/app
+    networks:
+      - frontend
+      - backend
+
+  db:
+    container_name: db
+    restart: always
+    image: mysql/mysql-server:5.7
+    command: --socket=/var/run/mysqld/mysql.sock
+    environment:
+      MYSQL_ROOT_PASSWORD: mypass
+      MYSQL_DATABASE: teampass
+      MYSQL_PASSWORD: teampass
+      MYSQL_USER: teampass
+    volumes:
+      - ./volumes/db:/var/lib/mysql
+    networks:
+      - backend
+
+networks:
+    frontend:
+    backend:
