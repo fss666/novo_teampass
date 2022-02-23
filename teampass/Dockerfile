@@ -6,7 +6,12 @@ RUN apk update --no-cache \
 icu-dev \
 oniguruma-dev \
 tzdata \
-openldap-dev
+openldap-dev \
+autoconf \
+g++ \
+make 
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
 
 RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing gnu-libiconv
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
@@ -33,12 +38,20 @@ RUN docker-php-ext-install gd
 
 RUN docker-php-ext-install mysqli
 
-RUN apk del openldap-dev
- 
-RUN rm -rf /var/cache/apk/*
+
+RUN apk del openldap-dev autoconf g++ make \
+    && rm -rf /var/cache/apk/* \
+    && rm -rf /tmp/pear
+
+# COPY config/php/docker-vars.ini /usr/local/etc/php/conf.d/docker-vars.ini
+COPY . /usr/src/teampass
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
-# COPY config/php/docker-vars.ini /usr/local/etc/php/conf.d/docker-vars.ini
 
-CMD ["php-fpm"]
+RUN chmod +x /usr/src/teampass/docker-start.sh
+
+#não é necessário pois o php-fpm já tem uma diretiva que define o usuário de execução
+#USER 1000
+WORKDIR /app
+ENTRYPOINT [  "/usr/src/teampass/docker-start.sh" ]

@@ -16,9 +16,22 @@ services:
       - frontend
 
   teampass:
-    image: php:7-fpm
+#    image: php:7-fpm
+    build: teampass
+    restart: always
+    environment:
+      - APP_PATH=/app
     volumes:
-      - ./teampass/app:/app
+      - ./teampass/php/teampass-vars.ini:/usr/local/etc/php/conf.d/teampass-vars.ini
+      - ./teampass/php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+      - ./teampass/php/error_reporting.ini:/usr/local/etc/php/conf.d/error_reporting.ini
+
+      - ./volumes/teampass/app:/app
+      - ./volumes/teampass/sk/:/usr/local/teampass/sk/
+
+      - .teampass/php/phpSettings.conf:/usr/local/etc/php-fpm.d/zzz-phpSettings.conf
+      - ./logs/php-error.log:/var/log/error.log
+      - ./logs/php-access.log:/var/log/access.log
     networks:
       - frontend
       - backend
@@ -26,13 +39,13 @@ services:
   db:
     container_name: db
     restart: always
-    image: mysql/mysql-server:5.7
-    command: --socket=/var/run/mysqld/mysql.sock
+    image: mariadb:10.6
+    command: --socket=/tmp/mariadb.sock
     environment:
-      MYSQL_ROOT_PASSWORD: mypass
-      MYSQL_DATABASE: teampass
-      MYSQL_PASSWORD: teampass
-      MYSQL_USER: teampass
+      MARIADB_ROOT_PASSWORD: mypass
+      MARIADB_DATABASE: teampass
+      MARIADB_USER: teampass
+      MARIADB_PASSWORD: teampass
     volumes:
       - ./volumes/db:/var/lib/mysql
     networks:

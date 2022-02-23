@@ -188,6 +188,18 @@ if (empty($session_db_encoding) === true) {
 
 $superGlobal->put('CPM', 1, 'SESSION');
 
+$log_filename = '/tmp/teampass_php.log';
+
+// Open and write Settings file
+$file_handler = fopen($log_filename, 'w');
+$result = fwrite(
+    $file_handler,
+    utf8_encode(
+        'Iniciando o arquivo de log do Teampass....'
+    )
+);
+//fclose($file_handler);
+
 if (null !== $post_type) {
     switch ($post_type) {
         case 'step_2':
@@ -523,8 +535,8 @@ if (null !== $post_type) {
                         }
                         $file_handler = fopen($tp_config_file, 'w');
                         $config_text = '<?php
-global $SETTINGS;
-$SETTINGS = array (';
+                                            global $SETTINGS;
+                                            $SETTINGS = array (';
 
                         // add by default settings
                         $aMiscVal = array(
@@ -689,16 +701,15 @@ $SETTINGS = array (';
                             }
 
                             // append new setting in config file
-                            $config_text .= "
-    '" . $elem[1] . "' => '" . str_replace("'", '', $elem[2]) . "',";
+                            $config_text .= "'" . $elem[1] . "' => '" . 
+                                            str_replace("'", '', $elem[2]) . "',";
                         }
 
                         // write to config file
                         $result = fwrite(
                             $file_handler,
                             utf8_encode(
-                                $config_text . '
-);'
+                                $config_text . ');'
                             )
                         );
                         fclose($file_handler);
@@ -736,6 +747,26 @@ $SETTINGS = array (';
                             ) CHARSET=utf8;"
                         );
                     } elseif ($task === 'users') {
+                        // do nothing
+                        $mysqli_result = $true;
+
+
+                        $result = fwrite(
+                            $file_handler,
+                            utf8_encode(
+                                'Passando pelo step \'users\'.... do nothing'
+                            )
+                        );
+
+                    } elseif ($task === 'usersdisable') {
+                        $result = fwrite(
+                            $file_handler,
+                            utf8_encode(
+                                'Passando pelo step \'users\'.... do nothing'
+                            )
+                        );
+
+
                         $mysqli_result = mysqli_query(
                             $dbTmp,
                             "CREATE TABLE IF NOT EXISTS `" . $var['tbl_prefix'] . "users` (
@@ -1293,20 +1324,20 @@ $SETTINGS = array (';
                         $file_handler,
                         utf8_encode(
                             '<?php
-// DATABASE connexion parameters
-define("DB_HOST", "' . $db['db_host'] . '");
-define("DB_USER", "' . $db['db_login'] . '");
-define("DB_PASSWD", "' . str_replace('$', '\$', $encrypted_text) . '");
-define("DB_NAME", "' . $db['db_bdd'] . '");
-define("DB_PREFIX", "' . $var['tbl_prefix'] . '");
-define("DB_PORT", "' . $db['db_port'] . '");
-define("DB_ENCODING", "' . $session_db_encoding . '");
-define("SECUREPATH", "' . $securePath . '");
+                                // DATABASE connexion parameters
+                                define("DB_HOST", "' . $db['db_host'] . '");
+                                define("DB_USER", "' . $db['db_login'] . '");
+                                define("DB_PASSWD", "' . str_replace('$', '\$', $encrypted_text) . '");
+                                define("DB_NAME", "' . $db['db_bdd'] . '");
+                                define("DB_PREFIX", "' . $var['tbl_prefix'] . '");
+                                define("DB_PORT", "' . $db['db_port'] . '");
+                                define("DB_ENCODING", "' . $session_db_encoding . '");
+                                define("SECUREPATH", "' . $securePath . '");
 
-if (isset($_SESSION[\'settings\'][\'timezone\']) === true) {
-    date_default_timezone_set($_SESSION[\'settings\'][\'timezone\']);
-}
-'
+                                if (isset($_SESSION[\'settings\'][\'timezone\']) === true) {
+                                    date_default_timezone_set($_SESSION[\'settings\'][\'timezone\']);
+                                }
+                                '
                         )
                     );
                     fclose($file_handler);
@@ -1373,3 +1404,5 @@ if (isset($_SESSION[\'settings\'][\'timezone\']) === true) {
             break;
     }
 }
+
+fclose($file_handler);
